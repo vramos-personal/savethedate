@@ -184,7 +184,10 @@ class LoadingScreen {
     this.manager = manager;
     this.overlay = document.getElementById('loading-overlay');
     this._timer = 0;
-    this._duration = 2; // seconds
+    this._minDuration = 1.5; // minimum seconds to show loading screen
+    this._loaded = false;
+    this._totalSprites = 0;
+    this._loadedSprites = 0;
   }
 
   enter(data) {
@@ -197,11 +200,59 @@ class LoadingScreen {
 
     this.overlay.style.display = 'flex';
     this._timer = 0;
+    this._loaded = false;
+    this._loadedSprites = 0;
+
+    // Preload all game sprites
+    this._preloadSprites();
+  }
+
+  /**
+   * Preload all sprite images used throughout the game.
+   * Only transitions to quest screen once everything is loaded.
+   */
+  _preloadSprites() {
+    const spritePaths = [
+      'assets/sprites/groom.png',
+      'assets/sprites/groomfacing.png',
+      'assets/sprites/bride.png',
+      'assets/sprites/church.png',
+      'assets/sprites/couple.png',
+      'assets/sprites/flower.png',
+      'assets/sprites/ring.png'
+    ];
+
+    this._totalSprites = spritePaths.length;
+    this._loadedSprites = 0;
+
+    if (this._totalSprites === 0) {
+      this._loaded = true;
+      return;
+    }
+
+    spritePaths.forEach(path => {
+      const img = new Image();
+      img.onload = () => {
+        this._loadedSprites++;
+        if (this._loadedSprites >= this._totalSprites) {
+          this._loaded = true;
+        }
+      };
+      img.onerror = () => {
+        // Count errors as loaded so we don't get stuck
+        this._loadedSprites++;
+        if (this._loadedSprites >= this._totalSprites) {
+          this._loaded = true;
+        }
+      };
+      img.src = path;
+    });
   }
 
   update(dt, input) {
     this._timer += dt;
-    if (this._timer >= this._duration) {
+    // Wait for both minimum duration AND all sprites to load
+    if (this._timer >= this._minDuration && this._loaded) {
       this.manager.switchTo('quest');
     }
   }

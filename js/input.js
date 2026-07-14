@@ -253,6 +253,18 @@ class InputSystem {
   }
 
   /**
+   * Clear all input state — call this on pause/blur to prevent stuck keys.
+   */
+  clear() {
+    this.keys.clear();
+    this.justPressed.clear();
+    this._leftPointers.clear();
+    this._rightPointers.clear();
+    this._jumpPointers.clear();
+    this._jumpWasActive = false;
+  }
+
+  /**
    * Clean up event listeners and touch controls (for teardown if needed).
    */
   destroy() {

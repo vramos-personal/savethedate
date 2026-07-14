@@ -9,7 +9,11 @@
  * - Responsive integer scaling to maintain 16:9 aspect ratio
  */
 class GameEngine {
-  constructor() {
+  /**
+   * @param {object} [inputSystem] - Optional reference to InputSystem for clearing state on pause
+   */
+  constructor(inputSystem) {
+    this._input = inputSystem || null;
     // Canvas setup
     this.virtualCanvas = document.getElementById('virtualCanvas');
     this.displayCanvas = document.getElementById('displayCanvas');
@@ -37,6 +41,11 @@ class GameEngine {
         this.resume();
       }
     });
+
+    // Catch window blur (switching to another app, clicking outside, Alt+Tab)
+    window.addEventListener('blur', () => {
+      this.pause();
+    });
   }
 
   /**
@@ -52,9 +61,14 @@ class GameEngine {
 
   /**
    * Freeze updates (e.g. when tab loses focus).
+   * Also clears all input state to prevent stuck keys after resume.
    */
   pause() {
     this.paused = true;
+    // Clear input state so no keys are stuck held when tab regains focus
+    if (this._input && this._input.clear) {
+      this._input.clear();
+    }
   }
 
   /**
@@ -64,6 +78,10 @@ class GameEngine {
     if (!this.paused) return;
     this.paused = false;
     this.lastTime = performance.now();
+    // Clear input state one more time on resume to catch any edge cases
+    if (this._input && this._input.clear) {
+      this._input.clear();
+    }
     requestAnimationFrame(this.tick);
   }
 

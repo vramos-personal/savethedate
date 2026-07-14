@@ -6,8 +6,8 @@
  */
 
 // Create core systems
-const engine = new GameEngine();
 const input = new InputSystem();
+const engine = new GameEngine(input);
 
 // StorageManager — persists best time and mute preference
 const storage = new StorageManager();
