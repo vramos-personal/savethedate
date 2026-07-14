@@ -139,13 +139,8 @@ class Player {
   }
 
   /**
-   * Render the player with animation-state-based visuals.
-   * Uses color-coded rectangles as sprite placeholders:
-   *   - Idle: solid blue #3355ff
-   *   - Run: cycling blue shades (simulates running frames)
-   *   - Jump: light blue #6699ff, vertically stretched appearance
-   *
-   * A small white triangle indicates facing direction.
+   * Render the player using the groom.png sprite.
+   * Falls back to a colored rectangle if the image hasn't loaded yet.
    * When facing left, the sprite is flipped via ctx.scale(-1, 1).
    *
    * @param {CanvasRenderingContext2D} ctx - Canvas rendering context
@@ -153,13 +148,17 @@ class Player {
    */
   render(ctx, camera) {
     const screenX = this.x - camera.x;
-    const screenY = this.y;
+    let screenY = this.y;
+
+    // Bob effect: subtle bounce while running to simulate movement
+    if (this.animState === 'run') {
+      screenY += Math.sin(this.animTimer * 16) * 1.5;
+    }
 
     ctx.save();
 
     // Apply horizontal flip when facing left
     if (this.facing === -1) {
-      // Translate to player center, flip, translate back
       ctx.translate(screenX + this.w / 2, screenY + this.h / 2);
       ctx.scale(-1, 1);
       ctx.translate(-(this.w / 2), -(this.h / 2));
@@ -167,42 +166,41 @@ class Player {
       ctx.translate(screenX, screenY);
     }
 
-    // Draw body based on animation state
-    if (this.animState === 'idle') {
+    // Draw the groom sprite if loaded, otherwise fallback to rectangle
+    if (Player._spriteLoaded && Player._sprite) {
+      // Use nearest-neighbor (no smoothing) for crisp pixel art
+      ctx.imageSmoothingEnabled = false;
+
+      const img = Player._sprite;
+      const aspectRatio = img.width / img.height;
+
+      if (aspectRatio > 2) {
+        // Wide image = likely a spritesheet with frames side by side
+        const frameCount = 6;
+        const frameW = img.width / frameCount;
+        const frameH = img.height;
+        let frameIndex = 0;
+        if (this.animState === 'run') {
+          frameIndex = 1 + (this.animFrame % 4);
+        } else if (this.animState === 'jump') {
+          frameIndex = 5;
+        }
+        ctx.drawImage(img, frameIndex * frameW, 0, frameW, frameH, 0, 0, this.w, this.h);
+      } else {
+        // Single image — draw slightly oversized to account for transparent padding
+        // Offset upward so the character's feet align with the bottom of the hitbox
+        const drawW = this.w * 1.4;
+        const drawH = this.h * 1.4;
+        const offsetX = -(drawW - this.w) / 2;
+        const offsetY = -(drawH - this.h) * 0.7; // shift up so feet meet platform
+        ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+      }
+
+      ctx.imageSmoothingEnabled = false;
+    } else {
       ctx.fillStyle = '#3355ff';
       ctx.fillRect(0, 0, this.w, this.h);
-    } else if (this.animState === 'run') {
-      // Cycle between blue shades to simulate running
-      const runColors = ['#3355ff', '#2244dd', '#4466ff', '#2244dd'];
-      ctx.fillStyle = runColors[this.animFrame];
-      ctx.fillRect(0, 0, this.w, this.h);
-
-      // Draw "leg" indicators that alternate with frames
-      ctx.fillStyle = '#1a1a4e';
-      if (this.animFrame % 2 === 0) {
-        ctx.fillRect(2, this.h - 6, 4, 6);   // Left leg forward
-        ctx.fillRect(10, this.h - 4, 4, 4);  // Right leg back
-      } else {
-        ctx.fillRect(2, this.h - 4, 4, 4);   // Left leg back
-        ctx.fillRect(10, this.h - 6, 4, 6);  // Right leg forward
-      }
-    } else if (this.animState === 'jump') {
-      ctx.fillStyle = '#6699ff';
-      // Draw slightly stretched vertically (2px taller, offset up)
-      ctx.fillRect(0, -2, this.w, this.h + 2);
     }
-
-    // Draw facing direction indicator (small white triangle on front)
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    // Arrow pointing right (will be flipped by ctx.scale when facing left)
-    const arrowX = this.w - 2;
-    const arrowY = this.h / 2;
-    ctx.moveTo(arrowX, arrowY - 3);
-    ctx.lineTo(arrowX + 3, arrowY);
-    ctx.lineTo(arrowX, arrowY + 3);
-    ctx.closePath();
-    ctx.fill();
 
     ctx.restore();
   }
@@ -242,3 +240,9 @@ class Player {
     return { x: this.x, y: this.y, w: this.w, h: this.h };
   }
 }
+
+// Load the groom sprite image (static, shared across all Player instances)
+Player._sprite = new Image();
+Player._spriteLoaded = false;
+Player._sprite.onload = function() { Player._spriteLoaded = true; };
+Player._sprite.src = 'assets/sprites/groom.png';

@@ -101,17 +101,28 @@ replayText: "Play Again",                      // Replay button text
 
 The game uses colored rectangles and emoji as placeholders. Replace them with real pixel art for a polished look.
 
+### How Sprites Work in This Game
+
+The game supports **two approaches** for the player sprite:
+
+| Approach | Image Type | How the Code Handles It |
+|----------|------------|------------------------|
+| **Single image** | One pose, square-ish (e.g. 256×256) | Draws the whole image for all states |
+| **Spritesheet** | Multiple frames in a wide horizontal strip (aspect ratio > 2:1) | Slices into 6 equal frames and animates |
+
+The code auto-detects which type you're using based on the image aspect ratio.
+
 ### Asset File Structure
 
 ```
 assets/
 ├── sprites/
-│   ├── groom.png          # Player character spritesheet
-│   ├── bride.png          # Bride sprite (thank-you screen + invitation)
-│   ├── couple.png         # Couple together (invitation screen bottom-left)
+│   ├── groom.png          # Player character (single image OR spritesheet)
+│   ├── bride.png          # Bride sprite (thank-you + invitation screens)
+│   ├── couple.png         # Couple together (invitation screen)
 │   ├── tiles.png          # Platform tile atlas
 │   ├── collectibles.png   # Bouquet + ring sprites
-│   └── church.png         # Church sprite (gameplay + invitation bottom-right)
+│   └── church.png         # Church sprite (gameplay + invitation)
 ├── audio/
 │   ├── bgm.mp3            # Background music (looping)
 │   ├── jump.mp3           # Jump sound effect
@@ -120,34 +131,121 @@ assets/
 └── title-bg.png           # Optional title screen background
 ```
 
-### Sprite Specifications
+---
 
-#### groom.png — Player Spritesheet
+## Using Spritesheets (Animated Player)
+
+If you want the groom to have different poses for idle/running/jumping, you need a spritesheet — a single image with all frames laid out side by side.
+
+### Spritesheet Requirements
 
 | Property | Value |
 |----------|-------|
-| Frame size | 16×24 pixels |
-| Layout | Horizontal strip |
-| Frames | Idle (1), Run (4), Jump (1) = 6 total |
-| Total size | 96×24 pixels |
-| Format | PNG with transparency |
+| Layout | **6 frames in a horizontal row** |
+| Frame order | `[Idle] [Run1] [Run2] [Run3] [Run4] [Jump]` |
+| Aspect ratio | Must be wider than 2:1 (e.g. 6:1 for square frames) |
+| Format | PNG with transparent background |
+| Max size | Under 1 MB |
 
-Frame layout: `[Idle] [Run1] [Run2] [Run3] [Run4] [Jump]`
+Example dimensions that work:
+- 192×32 (32px frames)
+- 384×64 (64px frames)
+- 768×128 (128px frames)
+- 1536×256 (256px frames)
+
+The key rule: **width must be exactly 6× the height** (or close to it).
+
+### Step-by-Step: Creating a Spritesheet with ChatGPT
+
+ChatGPT/DALL-E struggles with precise pixel-art spritesheets at tiny sizes. Here's the best workflow:
+
+**Step 1: Generate individual frames**
+
+Generate each frame as a separate image. Use this prompt for each:
+
+```
+Pixel art character of a cute chibi groom for a 2D platformer game.
+Single character only, full body, facing right.
+Black tuxedo, white shirt, short dark hair.
+[POSE DESCRIPTION - see below]
+Square image, character centered, transparent/white background.
+Cute 16-bit pixel art style like Stardew Valley.
+256x256 pixels, clean pixel edges.
+```
+
+Replace `[POSE DESCRIPTION]` with:
+- Frame 1 (Idle): `Standing still in a relaxed pose`
+- Frame 2 (Run1): `Running pose, left foot forward, right arm forward`
+- Frame 3 (Run2): `Running pose, feet together mid-stride`
+- Frame 4 (Run3): `Running pose, right foot forward, left arm forward`
+- Frame 5 (Run4): `Running pose, feet together mid-stride (mirror of frame 3)`
+- Frame 6 (Jump): `Jumping pose, knees tucked up, arms raised`
+
+**Step 2: Remove backgrounds**
+
+For each generated image:
+1. Go to [remove.bg](https://www.remove.bg) and upload the image
+2. Download the transparent PNG
+3. OR use Photoshop/GIMP: Select white background → Delete → Save as PNG
+
+**Step 3: Assemble the spritesheet**
+
+Use one of these free tools to combine 6 images into one horizontal strip:
+
+- **Piskel** (browser): [piskelapp.com](https://www.piskelapp.com) — Import frames, export as spritesheet
+- **TexturePacker** (free tier): [texturepacker.com](https://www.texturepacker.com)
+- **ShoeBox** (free): [renderhjs.net/shoebox](https://renderhjs.net/shoebox/)
+- **Manual with GIMP/Photoshop**:
+  1. Create new image: width = frame_width × 6, height = frame_height
+  2. Paste each frame side by side
+  3. Export as PNG
+
+**Step 4: Resize (if needed)**
+
+If the final spritesheet is too large (e.g. 1536×256), resize it down:
+- Use **nearest-neighbor** resampling (not bilinear!) to keep pixel edges crisp
+- Good target size: 384×64 (64px frames) or 192×32 (32px frames)
+- In GIMP: Image → Scale Image → Interpolation: None
+- In Photoshop: Image → Image Size → Resample: Nearest Neighbor
+
+**Step 5: Save and replace**
+
+Save as `assets/sprites/groom.png` and refresh the game.
+
+### Alternative: Single Image Approach (Easier)
+
+If you just want a static character (no animation), use a single square image:
+
+```
+Pixel art character of a cute chibi groom for a 2D platformer game.
+ONE character only, running pose facing right.
+Full body visible head to feet, chibi proportions.
+Black tuxedo, white shirt.
+Transparent background, square canvas, 256x256 pixels.
+Cute pixel art style like Stardew Valley or Undertale.
+No text, no labels, no extra elements.
+```
+
+Save as `groom.png` — the code will use it for all states (idle, run, jump) with horizontal flipping for direction.
+
+---
+
+## Other Sprite Specifications
 
 #### bride.png — Bride Character
 
 | Property | Value |
 |----------|-------|
-| Size | 32×48 pixels (or larger for thank-you screen) |
+| Size | 256×256 pixels (or any square) |
 | Format | PNG with transparency |
 | Used on | Thank You screen, Invitation screen |
-| Notes | Front-facing, cheerful pose |
+| Notes | Front-facing, cheerful pose, white dress + veil |
 
 #### couple.png — Bride & Groom Together
 
 | Property | Value |
 |----------|-------|
-| Size | 64×48 pixels |
+| Size | 512×256 pixels (or any wide rectangle) |
 | Format | PNG with transparency |
 | Used on | Title screen (optional), Invitation screen (bottom-left) |
 | Notes | Side by side, facing forward |
@@ -156,7 +254,7 @@ Frame layout: `[Idle] [Run1] [Run2] [Run3] [Run4] [Jump]`
 
 | Property | Value |
 |----------|-------|
-| Tile size | 16×16 pixels |
+| Tile size | 16×16 pixels (or 32×32 for higher detail) |
 | Tiles needed | Grass top, dirt middle, dirt bottom |
 | Format | PNG with transparency |
 
@@ -164,92 +262,87 @@ Frame layout: `[Idle] [Run1] [Run2] [Run3] [Run4] [Jump]`
 
 | Property | Value |
 |----------|-------|
-| Frame size | 16×16 pixels |
-| Items | Bouquet, Ring |
-| Total size | 32×16 pixels |
+| Items | Bouquet (left), Ring (right) |
+| Size | Any size, two items side by side |
 | Format | PNG with transparency |
 
 #### church.png — Church/Chapel
 
 | Property | Value |
 |----------|-------|
-| Size | 40×48 pixels |
+| Size | 256×256 pixels (or any square/tall) |
 | Format | PNG with transparency |
-| Used on | Gameplay (finish line), Invitation screen (bottom-right) |
-| Notes | Include steeple/cross on top |
+| Used on | Gameplay finish line, Invitation screen (bottom-right) |
 
 ---
 
-## Generating Sprites with AI Image Tools
+## Generating Sprites with ChatGPT (DALL-E)
 
-Use these prompts with AI image generators (DALL-E, Midjourney, Stable Diffusion) to create sprites. Resize to exact dimensions after generation.
+### Best Practices for ChatGPT Image Generation
 
-### Prompt 1: Groom Spritesheet
+1. **Ask for ONE character per image** — don't ask for spritesheets directly
+2. **Specify "pixel art" and "chibi"** — this gives the best game-like results
+3. **Always say "transparent background"** — though you may still need to remove it manually
+4. **Request square dimensions** — ChatGPT handles 256×256 and 512×512 best
+5. **Include style references** — "like Stardew Valley" or "like Undertale" helps
 
-```
-Pixel art spritesheet of a cartoon groom character for a 2D platformer game.
-16x24 pixel frame size, 6 frames in a horizontal strip (96x24 total).
-Black tuxedo with white shirt and boutonniere.
-Frames: standing idle, 4 running frames (legs alternating), 1 jumping frame.
-Transparent background, clean pixel edges, no anti-aliasing.
-Bright cheerful style, side view facing right.
-```
-
-### Prompt 2: Bride Character
+### Prompt: Groom (Single Image)
 
 ```
-Pixel art bride character, front-facing, 32x48 pixels.
-White wedding dress, veil, holding a small bouquet.
-Happy expression, cheerful and warm style.
-Transparent background, clean pixel art, no anti-aliasing.
-Suitable for a cute wedding-themed game.
+Pixel art character of a cute chibi groom for a 2D side-scrolling game.
+ONE character only, running pose facing right, full body head to feet.
+Black tuxedo, white shirt, short dark hair, happy expression.
+Transparent background, 256x256 square image, centered.
+Cute 16-bit pixel art style like Stardew Valley.
+No text, no labels, clean pixel edges.
 ```
 
-### Prompt 3: Couple Together
+### Prompt: Bride
 
 ```
-Pixel art bride and groom standing side by side, 64x48 pixels.
-Bride in white dress on the left, groom in black tuxedo on the right.
-Both facing forward with happy expressions.
-Wedding theme, cheerful colors, transparent background.
-Clean pixel art style, no anti-aliasing.
+Pixel art character of a cute chibi bride for a 2D game.
+ONE character only, front-facing, standing pose, full body.
+White wedding dress with veil, holding a small bouquet.
+Happy expression, transparent background, 256x256 square.
+Cute pixel art style like Stardew Valley.
 ```
 
-### Prompt 4: Platform Tiles
+### Prompt: Couple Together
 
 ```
-Pixel art tileset for a 2D platformer, 16x16 pixel tiles.
-3 tiles: grass top (green with blade details), dirt middle (brown),
-dirt bottom (darker brown with rocks).
-Outdoor wedding garden theme, cheerful colors.
-Transparent background, seamless horizontal tiling.
+Pixel art of a cute chibi bride and groom standing side by side.
+Bride in white dress on left, groom in black tuxedo on right.
+Both facing forward, happy expressions, full body visible.
+Transparent background, 512x256 pixels.
+Cute pixel art style, wedding theme.
 ```
 
-### Prompt 5: Collectibles
+### Prompt: Church
 
 ```
-Pixel art items, each 16x16 pixels, two items side by side (32x16 total).
-Left: pink/red flower bouquet with green stems and white ribbon.
-Right: gold wedding ring with diamond sparkle.
-Transparent background, bright colors, clean pixel art.
+Pixel art small wedding chapel for a 2D game.
+White church with pointed roof, cross on steeple, arched doorway.
+Round stained glass window, cheerful and cute style.
+Transparent background, 256x256 square.
+Clean pixel art, no anti-aliasing.
 ```
 
-### Prompt 6: Church
+### Prompt: Collectibles (Bouquet + Ring)
 
 ```
-Pixel art small church, 40x48 pixels.
-White chapel with peaked roof, cross on steeple, arched doorway,
-small round window. Cheerful wedding day style.
-Transparent background, clean pixel art, no anti-aliasing.
+Pixel art of two wedding items for a game, side by side:
+Left: a cute pink flower bouquet with green stems and white ribbon.
+Right: a gold wedding ring with a sparkling diamond.
+Both items on transparent background, 256x128 total image.
+Cute pixel art style, bright cheerful colors.
 ```
 
-### Tips for AI-Generated Sprites
+### After Generating: Post-Processing Steps
 
-1. **Resize after generation**: Scale down to exact pixel dimensions using nearest-neighbor resampling (not bilinear/smooth)
-2. **Remove backgrounds**: Use [remove.bg](https://www.remove.bg) or Photoshop's magic wand
-3. **Touch up**: Use [Piskel](https://www.piskelapp.com), [Aseprite](https://www.aseprite.org), or [Lospec Pixel Editor](https://lospec.com/pixel-editor)
-4. **Consistent palette**: Use 8–12 colors across all sprites
-5. **Test at 1x**: Preview at actual size before scaling up
+1. **Remove background**: Upload to [remove.bg](https://www.remove.bg) → download transparent PNG
+2. **Crop tightly**: Remove extra whitespace around the character
+3. **Optional resize**: Scale down using nearest-neighbor for crispier pixels
+4. **Save as PNG**: Keep transparency, save to `assets/sprites/`
 
 ---
 

@@ -8,8 +8,8 @@ const MOVE_SPEED = 100;     // px/s
 const JUMP_IMPULSE = -260;  // px/s (negative = upward)
 
 // Player dimensions
-const PLAYER_W = 16;
-const PLAYER_H = 24;
+const PLAYER_W = 32;
+const PLAYER_H = 48;
 
 // Gameplay
 const TIMER_DURATION = 30;  // seconds (generous, no lose condition anyway)

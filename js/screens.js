@@ -304,7 +304,8 @@ class GameplayScreen {
    * @param {object} data
    */
   enter(data) {
-    this.player = new Player(16, 200);
+    this.player = new Player(16, 176);
+    this.player.grounded = true;
     this.level = new Level();
     this.level.reset();
     this.camera = new Camera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, this.level.getLevelWidth());
