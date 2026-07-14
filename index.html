@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Run to the Altar!</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="virtualCanvas" width="144" height="256"></canvas>
+  <canvas id="displayCanvas"></canvas>
+
+  <!-- Loading screen HTML overlay -->
+  <div id="loading-overlay" class="screen-overlay" style="display:none;">
+    <div class="loading-content">
+      <p class="loading-text">Loading...</p>
+      <div class="loading-ring">💍</div>
+    </div>
+  </div>
+
+  <!-- Quest/Mission screen HTML overlay -->
+  <div id="quest-overlay" class="screen-overlay" style="display:none;">
+    <div class="quest-content">
+      <p class="quest-label">Your mission:</p>
+      <div class="quest-box">
+        <p class="quest-text">Help the groom reach the wedding church!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thank You screen (after completing the game, before invitation) -->
+  <div id="thankyou-overlay" class="screen-overlay" style="display:none;">
+    <div class="thankyou-content">
+      <div class="thankyou-banner">
+        <p class="thankyou-title">Mission accomplished!</p>
+      </div>
+      <p class="thankyou-message">Thank you for guiding the groom to his happily ever after.</p>
+      <div class="thankyou-bride">👰</div>
+    </div>
+  </div>
+
+  <!-- Win/Invitation screen HTML overlay -->
+  <div id="win-overlay" class="screen-overlay" style="display:none;">
+    <div class="win-content">
+      <h1 class="win-heading"></h1>
+      <p class="win-couple"></p>
+      <div class="win-details">
+        <p class="win-date"></p>
+        <p class="win-time"></p>
+        <p class="win-venue"></p>
+      </div>
+      <p class="win-message"></p>
+      <p class="win-rsvp"></p>
+      <div class="win-bottom-art">
+        <div class="win-couple-sprite">👰🤵</div>
+        <div class="win-church-sprite">⛪</div>
+      </div>
+      <button class="win-replay-btn">Play Again</button>
+    </div>
+  </div>
+
+  <!-- Lose screen HTML overlay -->
+  <div id="lose-overlay" class="screen-overlay" style="display:none;">
+    <div class="lose-content">
+      <h1 class="lose-reason"></h1>
+      <button class="lose-retry-btn">Try Again</button>
+    </div>
+  </div>
+
+  <!-- Title screen HTML overlay -->
+  <div id="title-overlay" class="screen-overlay" style="display:none;">
+    <div class="title-content">
+      <div class="title-heart">💕</div>
+      <p class="title-label">SAVE THE DATE</p>
+      <h1 class="title-couple"></h1>
+      <p class="title-tagline"></p>
+      <div class="title-couple-image"></div>
+      <div class="title-buttons">
+        <button class="title-play-btn">Play</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/constants.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/level.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/hud.js"></script>
+  <script src="js/screens.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

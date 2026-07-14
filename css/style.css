@@ -1,0 +1,517 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+#virtualCanvas {
+  display: none;
+}
+
+#displayCanvas {
+  image-rendering: auto;
+}
+
+/* Touch Controls */
+#touch-controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 100;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+#touch-dpad {
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.touch-btn {
+  width: 64px;
+  height: 64px;
+  min-width: 48px;
+  min-height: 48px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 24px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.05s ease, transform 0.05s ease;
+}
+
+.touch-btn.active {
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(255, 255, 255, 0.9);
+  transform: scale(0.93);
+}
+
+#btn-jump {
+  font-size: 28px;
+}
+
+
+/* Orientation Warning Overlay */
+#orientation-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.92);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 24px;
+}
+
+.orientation-warning-content {
+  text-align: center;
+  color: #ffffff;
+  max-width: 280px;
+}
+
+.orientation-warning-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.orientation-warning-text {
+  font-size: 18px;
+  line-height: 1.4;
+  margin-bottom: 24px;
+  font-family: sans-serif;
+}
+
+.orientation-warning-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: sans-serif;
+  transition: background 0.15s ease;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.orientation-warning-btn:hover,
+.orientation-warning-btn:focus {
+  background: rgba(255, 255, 255, 0.15);
+  outline: none;
+}
+
+
+/* Screen Overlays — rendered in native resolution (no pixelation) */
+.screen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 0;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  transition: opacity 0.4s ease;
+}
+
+/* Constrain all overlays to 9:16 max aspect ratio centered on screen */
+.screen-overlay > div {
+  width: 100%;
+  max-width: min(100vw, calc(100vh * 9 / 16));
+  height: 100%;
+  max-height: min(100vh, calc(100vw * 16 / 9));
+}
+
+/* Title Screen Overlay — portrait wedding card style */
+#title-overlay {
+  background: #000;
+}
+
+.title-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #555;
+  background: linear-gradient(180deg, #fdf2f8 0%, #fce7f3 40%, #f5e6f0 100%);
+  border: 4px solid #f2a7c3;
+  padding: 24px 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.title-heart {
+  font-size: clamp(32px, 8vw, 56px);
+  margin-bottom: 8px;
+}
+
+.title-label {
+  font-size: clamp(14px, 3.5vw, 22px);
+  letter-spacing: 3px;
+  color: #888;
+  margin-bottom: 8px;
+  font-weight: normal;
+}
+
+.title-couple {
+  font-size: clamp(28px, 7vw, 52px);
+  color: #5b7fb5;
+  margin-bottom: 4px;
+  font-weight: bold;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.8);
+  line-height: 1.2;
+}
+
+.title-tagline {
+  font-size: clamp(12px, 3vw, 18px);
+  color: #888;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.title-couple-image {
+  width: 80%;
+  max-width: 280px;
+  aspect-ratio: 4/3;
+  background: rgba(0,0,0,0.05);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.title-buttons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.title-play-btn {
+  padding: 12px 40px;
+  font-size: clamp(16px, 4vw, 24px);
+  font-family: 'Georgia', serif;
+  background: #ffffff;
+  color: #f2a7c3;
+  border: 2px solid #f2a7c3;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.1s ease, background 0.15s ease;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.title-play-btn:hover {
+  transform: scale(1.05);
+  background: #f2a7c3;
+  color: #ffffff;
+}
+
+.title-best-time {
+  margin-top: 8px;
+  font-size: clamp(11px, 2.5vw, 14px);
+  color: #aaaaaa;
+}
+
+/* Loading Screen Overlay */
+#loading-overlay {
+  background: #000;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(180deg, #d4e6f9 0%, #e8f0fc 60%, #f0f6ff 100%);
+  padding: 40px 24px;
+}
+
+.loading-text {
+  font-size: clamp(28px, 7vw, 48px);
+  color: #5b7fb5;
+  font-style: italic;
+  margin-bottom: 24px;
+}
+
+.loading-ring {
+  font-size: clamp(64px, 16vw, 120px);
+  animation: loading-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+}
+
+/* Quest/Mission Screen Overlay */
+#quest-overlay {
+  background: #000;
+}
+
+.quest-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(180deg, #b8d4f0 0%, #d4e6f9 50%, #e8f4ff 100%);
+  padding: 40px 20px;
+  position: relative;
+  transition: opacity 0.5s ease;
+}
+
+.quest-label {
+  font-size: clamp(18px, 4.5vw, 28px);
+  color: #5b7fb5;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.quest-box {
+  background: rgba(255, 255, 255, 0.85);
+  border: 3px solid #8bb8e0;
+  border-radius: 12px;
+  padding: 24px 20px;
+  margin-bottom: 32px;
+  max-width: 85%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.quest-text {
+  font-size: clamp(18px, 4.5vw, 28px);
+  color: #333;
+  line-height: 1.5;
+  font-weight: bold;
+  white-space: pre-line;
+}
+
+.quest-start-btn {
+  padding: 14px 48px;
+  font-size: clamp(18px, 4.5vw, 26px);
+  font-family: 'Georgia', serif;
+  background: #5b7fb5;
+  color: #ffffff;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.1s ease;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.quest-start-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Thank You Screen Overlay */
+#thankyou-overlay {
+  background: #000;
+}
+
+.thankyou-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(180deg, #b8d4f0 0%, #d4e6f9 40%, #e8f4ff 100%);
+  padding: 40px 20px;
+  position: relative;
+}
+
+.thankyou-banner {
+  background: linear-gradient(135deg, #c68a3c 0%, #f0c96e 50%, #c68a3c 100%);
+  border: 3px solid #8b5e1a;
+  border-radius: 8px;
+  padding: 14px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.thankyou-title {
+  font-size: clamp(20px, 5vw, 32px);
+  color: #4a2800;
+  font-weight: bold;
+}
+
+.thankyou-message {
+  font-size: clamp(16px, 4vw, 24px);
+  color: #444;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 85%;
+}
+
+.thankyou-bride {
+  font-size: clamp(80px, 20vw, 140px);
+}
+
+/* Win Screen Bottom Art */
+.win-bottom-art {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  margin-top: 20px;
+  padding: 0 16px;
+}
+
+.win-couple-sprite {
+  font-size: clamp(32px, 8vw, 56px);
+}
+
+.win-church-sprite {
+  font-size: clamp(32px, 8vw, 56px);
+}
+
+/* Win Screen Overlay */
+#win-overlay {
+  background: #000;
+}
+
+.win-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  border-radius: 0;
+  background: #FFF8F0;
+  background-size: cover;
+  background-position: center;
+  box-shadow: none;
+}
+
+.win-heading {
+  font-size: clamp(24px, 5vw, 42px);
+  color: #8B0000;
+  margin-bottom: 8px;
+}
+
+.win-couple {
+  font-size: clamp(20px, 4vw, 36px);
+  color: #333;
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+.win-details {
+  margin-bottom: 20px;
+  line-height: 1.8;
+}
+
+.win-details p {
+  font-size: clamp(14px, 2.5vw, 20px);
+  color: #555;
+  margin: 4px 0;
+}
+
+.win-venue {
+  white-space: pre-line;
+}
+
+.win-message {
+  font-size: clamp(13px, 2.2vw, 18px);
+  color: #666;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.win-rsvp {
+  font-size: clamp(12px, 2vw, 16px);
+  color: #888;
+  margin-bottom: 24px;
+}
+
+.win-replay-btn {
+  padding: 12px 36px;
+  font-size: clamp(14px, 2.5vw, 18px);
+  font-family: inherit;
+  background: #8B0000;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.win-replay-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Lose Screen Overlay */
+#lose-overlay {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.lose-content {
+  text-align: center;
+  color: #ffffff;
+}
+
+.lose-reason {
+  font-size: clamp(24px, 5vw, 48px);
+  color: #ff4444;
+  margin-bottom: 32px;
+}
+
+.lose-retry-btn {
+  padding: 14px 48px;
+  font-size: clamp(16px, 3vw, 22px);
+  font-family: 'Georgia', serif;
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.lose-retry-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
