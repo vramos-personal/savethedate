@@ -11,16 +11,16 @@
  */
 class Level {
   constructor() {
-    // Portrait mode: canvas is 144×256, platforms near bottom (y=224, h=32)
+    // Portrait mode: canvas is 144×256, platforms near bottom (y=224, h=12)
+    // Platforms are thin so gaps between them create holes the player can fall through.
     /** @type {Array<{x: number, y: number, w: number, h: number}>} */
     this.platforms = [
-      { x: 0,    y: 224, w: 130, h: 32 },   // Platform 1 — starting area
-      { x: 155,  y: 224, w: 100, h: 32 },   // Platform 2 (gap = 25px)
-      { x: 280,  y: 224, w: 110, h: 32 },   // Platform 3 (gap = 25px)
-      { x: 415,  y: 224, w: 100, h: 32 },   // Platform 4 (gap = 25px)
-      { x: 540,  y: 224, w: 120, h: 32 },   // Platform 5 (gap = 25px)
-      { x: 685,  y: 224, w: 140, h: 32 },   // Platform 6 (gap = 25px)
-      { x: 850,  y: 224, w: 160, h: 32 }    // Platform 7 — church (gap = 25px)
+      { x: 0,   y: 224, w: 144, h: 12 },   // Platform 1 — starting area
+      { x: 180, y: 224, w: 96,  h: 12 },   // Platform 2 (gap = 36px)
+      { x: 312, y: 224, w: 96,  h: 12 },   // Platform 3 (gap = 36px)
+      { x: 444, y: 224, w: 96,  h: 12 },   // Platform 4 (gap = 36px)
+      { x: 576, y: 224, w: 112, h: 12 },   // Platform 5 (gap = 36px)
+      { x: 724, y: 224, w: 300, h: 12 }    // Platform 6 — continuous to church (no gap)
     ];
 
     /** @type {Array<{x: number, y: number, w: number, h: number, type: string, collected: boolean}>} */
@@ -35,7 +35,7 @@ class Level {
     this.finishArea = { x: 960, y: 184, w: 40, h: 48 };
 
     /** @type {number} */
-    this.levelWidth = 1010;
+    this.levelWidth = 1030;
   }
 
   /**

@@ -100,12 +100,17 @@ class Player {
         // Only resolve if player was above the platform top in the previous frame
         const prevBottom = prevY + this.h;
         if (prevBottom <= plat.y) {
-          // Snap player to platform top
-          this.y = plat.y - this.h;
-          this.vy = 0;
-          this.grounded = true;
-          // Update bounds for subsequent checks
-          playerBounds.y = this.y;
+          // Additionally, only snap if the player's horizontal center is over the platform
+          // This prevents snapping when walking off the edge into a gap
+          const playerCenterX = this.x + this.w / 2;
+          if (playerCenterX >= plat.x && playerCenterX <= plat.x + plat.w) {
+            // Snap player to platform top
+            this.y = plat.y - this.h;
+            this.vy = 0;
+            this.grounded = true;
+            // Update bounds for subsequent checks
+            playerBounds.y = this.y;
+          }
         }
       }
     }
@@ -166,8 +171,23 @@ class Player {
       ctx.translate(screenX, screenY);
     }
 
-    // Draw the groom sprite if loaded, otherwise fallback to rectangle
-    if (Player._spriteLoaded && Player._sprite) {
+    // Use groomfacing.png for idle, groom.png for run/jump
+    const useIdleSprite = (this.animState === 'idle') && Player._spriteFacingLoaded;
+    const useRunSprite = Player._spriteLoaded;
+
+    if (useIdleSprite && Player._spriteFacing) {
+      // Draw the facing/idle sprite using its natural aspect ratio (no stretching)
+      ctx.imageSmoothingEnabled = false;
+      const img = Player._spriteFacing;
+      const targetH = this.h * 1.45;
+      const naturalRatio = img.width / img.height;
+      const drawW = targetH * naturalRatio;
+      const drawH = targetH;
+      const offsetX = -(drawW - this.w) / 2;
+      const offsetY = -(drawH - this.h) * 0.7;
+      ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+      ctx.imageSmoothingEnabled = false;
+    } else if (useRunSprite && Player._sprite) {
       // Use nearest-neighbor (no smoothing) for crisp pixel art
       ctx.imageSmoothingEnabled = false;
 
@@ -241,8 +261,14 @@ class Player {
   }
 }
 
-// Load the groom sprite image (static, shared across all Player instances)
+// Load the groom sprites (static, shared across all Player instances)
 Player._sprite = new Image();
 Player._spriteLoaded = false;
 Player._sprite.onload = function() { Player._spriteLoaded = true; };
 Player._sprite.src = 'assets/sprites/groom.png';
+
+// Idle/facing sprite — used when the player is standing still
+Player._spriteFacing = new Image();
+Player._spriteFacingLoaded = false;
+Player._spriteFacing.onload = function() { Player._spriteFacingLoaded = true; };
+Player._spriteFacing.src = 'assets/sprites/groomfacing.png';

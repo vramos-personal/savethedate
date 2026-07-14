@@ -9,11 +9,11 @@ class HUD {
     /** @type {number} Elapsed time in seconds */
     this.elapsed = 0;
 
-    // Mute button bounds (virtual canvas coordinates)
-    this.muteBtn = { x: 296, y: 4, w: 20, h: 20 };
+    // Mute button bounds (virtual canvas coordinates) — 144px wide canvas
+    this.muteBtn = { x: 124, y: 4, w: 16, h: 16 };
 
     // High-contrast toggle button bounds (virtual canvas coordinates)
-    this.hcBtn = { x: 272, y: 4, w: 20, h: 20 };
+    this.hcBtn = { x: 104, y: 4, w: 16, h: 16 };
 
     /** @type {boolean} High-contrast mode state */
     this.highContrast = false;
@@ -34,6 +34,7 @@ class HUD {
    * @param {boolean} isMuted - Whether audio is currently muted
    */
   render(ctx, collectibles, isMuted) {
+    this._renderCollectibles(ctx, collectibles);
     this._renderMuteButton(ctx, isMuted);
   }
 
@@ -126,59 +127,73 @@ class HUD {
   }
 
   /**
-   * Render collectible indicators at top-left.
+   * Render collectible indicators at top-left using sprite images.
    * @param {CanvasRenderingContext2D} ctx
    * @param {Array<{type: string, collected: boolean}>} collectibles
    * @private
    */
   _renderCollectibles(ctx, collectibles) {
     ctx.save();
-    ctx.font = '10px sans-serif';
-    ctx.textBaseline = 'top';
 
-    // Bouquet indicator at x=8, y=4
+    // Load sprites if not already loaded
+    if (typeof HUD._flowerSprite === 'undefined') {
+      HUD._flowerSprite = new Image();
+      HUD._flowerSpriteLoaded = false;
+      HUD._flowerSprite.onload = function() { HUD._flowerSpriteLoaded = true; };
+      HUD._flowerSprite.src = 'assets/sprites/flower.png';
+    }
+    if (typeof HUD._ringSprite === 'undefined') {
+      HUD._ringSprite = new Image();
+      HUD._ringSpriteLoaded = false;
+      HUD._ringSprite.onload = function() { HUD._ringSpriteLoaded = true; };
+      HUD._ringSprite.src = 'assets/sprites/ring.png';
+    }
+
+    // Bouquet indicator at x=6, y=4
     const bouquet = collectibles ? collectibles.find(c => c.type === 'bouquet') : null;
     const bouquetCollected = bouquet ? bouquet.collected : false;
 
-    if (bouquetCollected) {
-      // Filled — bright pink circle
-      ctx.fillStyle = '#ff69b4';
-      ctx.beginPath();
-      ctx.arc(14, 10, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '8px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('💐', 14, 4);
+    // Draw background circle
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.beginPath();
+    ctx.arc(12, 12, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (bouquetCollected && HUD._flowerSpriteLoaded && HUD._flowerSprite) {
+      ctx.imageSmoothingEnabled = false;
+      const s = 14;
+      ctx.drawImage(HUD._flowerSprite, 12 - s / 2, 12 - s / 2, s, s);
+      ctx.imageSmoothingEnabled = false;
     } else {
-      // Outline only — empty circle
-      ctx.strokeStyle = '#ff69b4';
-      ctx.lineWidth = 1;
+      // Empty outline
+      ctx.strokeStyle = bouquetCollected ? '#ff69b4' : 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(14, 10, 6, 0, Math.PI * 2);
+      ctx.arc(12, 12, 8, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // Ring indicator at x=28, y=4
+    // Ring indicator at x=30, y=4
     const ring = collectibles ? collectibles.find(c => c.type === 'ring') : null;
     const ringCollected = ring ? ring.collected : false;
 
-    if (ringCollected) {
-      // Filled — gold circle
-      ctx.fillStyle = '#ffd700';
-      ctx.beginPath();
-      ctx.arc(34, 10, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '8px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('💍', 34, 4);
+    // Draw background circle
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.beginPath();
+    ctx.arc(34, 12, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (ringCollected && HUD._ringSpriteLoaded && HUD._ringSprite) {
+      ctx.imageSmoothingEnabled = false;
+      const s = 14;
+      ctx.drawImage(HUD._ringSprite, 34 - s / 2, 12 - s / 2, s, s);
+      ctx.imageSmoothingEnabled = false;
     } else {
-      // Outline only — empty circle
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 1;
+      // Empty outline
+      ctx.strokeStyle = ringCollected ? '#ffd700' : 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(34, 10, 6, 0, Math.PI * 2);
+      ctx.arc(34, 12, 8, 0, Math.PI * 2);
       ctx.stroke();
     }
 

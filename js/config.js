@@ -28,7 +28,7 @@ const WEDDING_CONFIG = {
 
   // Couple portrait image for title screen (optional)
   // Place in assets/, e.g. 'assets/couple.png'
-  coupleImage: null,
+  coupleImage: 'assets/sprites/couple.png',
 
   // === LOADING SCREEN ===
 
@@ -41,7 +41,7 @@ const WEDDING_CONFIG = {
   questLabel: "Your mission:",
 
   // The quest/mission text inside the box
-  questText: "Help the groom reach\nthe wedding church!",
+  questText: "Help Vho reach\nthe wedding church!",
 
   // === THANK YOU SCREEN (after completing, before invitation) ===
 

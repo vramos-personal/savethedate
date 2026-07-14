@@ -14,13 +14,17 @@
   <div id="loading-overlay" class="screen-overlay" style="display:none;">
     <div class="loading-content">
       <p class="loading-text">Loading...</p>
-      <div class="loading-ring">💍</div>
+      <div class="loading-ring-container">
+        <div class="loading-ring-bg"></div>
+        <img class="loading-ring" src="assets/sprites/ring.png" alt="Ring">
+      </div>
     </div>
   </div>
 
   <!-- Quest/Mission screen HTML overlay -->
   <div id="quest-overlay" class="screen-overlay" style="display:none;">
     <div class="quest-content">
+      <img class="quest-groom" src="assets/sprites/groomfacing.png" alt="Groom">
       <p class="quest-label">Your mission:</p>
       <div class="quest-box">
         <p class="quest-text">Help the groom reach the wedding church!</p>
@@ -35,7 +39,7 @@
         <p class="thankyou-title">Mission accomplished!</p>
       </div>
       <p class="thankyou-message">Thank you for guiding the groom to his happily ever after.</p>
-      <div class="thankyou-bride">👰</div>
+      <img class="thankyou-bride" src="assets/sprites/bride.png" alt="Bride">
     </div>
   </div>
 
@@ -51,10 +55,9 @@
       </div>
       <p class="win-message"></p>
       <p class="win-rsvp"></p>
-      <div class="win-bottom-art">
-        <div class="win-couple-sprite">👰🤵</div>
-        <div class="win-church-sprite">⛪</div>
-      </div>
+      <!-- Large background sprites -->
+      <img class="win-bg-church" src="assets/sprites/church.png" alt="Church">
+      <img class="win-bg-couple" src="assets/sprites/couple.png" alt="Couple">
       <button class="win-replay-btn">Play Again</button>
     </div>
   </div>

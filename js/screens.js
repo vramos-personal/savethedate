@@ -485,23 +485,15 @@ class GameplayScreen {
       ctx.fill();
     }
 
-    // Green ground strip at bottom
-    ctx.fillStyle = '#388E3C';
-    ctx.fillRect(0, VIRTUAL_HEIGHT - 10, VIRTUAL_WIDTH, 10);
-
-    // 2. Platforms — styled with grass top and dirt bottom
+    // 2. Platforms — styled with grass top and solid brown/dirt filling to the bottom
     const platforms = this.level.getPlatforms();
     for (let i = 0; i < platforms.length; i++) {
       const p = platforms[i];
       const px = p.x - offset.x;
 
-      // Dirt/brown bottom strip (4px)
+      // Solid brown extends from platform top all the way to bottom of screen
       ctx.fillStyle = '#5D4037';
-      ctx.fillRect(px, p.y + p.h - 4, p.w, 4);
-
-      // Dark green base
-      ctx.fillStyle = '#2E7D32';
-      ctx.fillRect(px, p.y + 4, p.w, p.h - 8);
+      ctx.fillRect(px, p.y, p.w, VIRTUAL_HEIGHT - p.y);
 
       // Light green grass top strip (4px)
       ctx.fillStyle = '#66BB6A';
@@ -533,47 +525,46 @@ class GameplayScreen {
       const cx = c.x + c.w / 2 - offset.x;
       const cy = c.y + c.h / 2 + bobOffset;
 
-      if (c.type === 'bouquet') {
-        // Green stem
-        ctx.fillStyle = '#2E7D32';
-        ctx.fillRect(cx - 1, cy + 2, 2, 5);
-        // Pink/magenta flower circle
-        ctx.fillStyle = '#E91E63';
-        ctx.beginPath();
-        ctx.arc(cx, cy, c.w / 2, 0, Math.PI * 2);
-        ctx.fill();
-        // Lighter center
-        ctx.fillStyle = '#F48FB1';
-        ctx.beginPath();
-        ctx.arc(cx, cy, c.w / 4, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (c.type === 'ring') {
-        // Gold ring circle
-        ctx.fillStyle = '#FFD700';
-        ctx.beginPath();
-        ctx.arc(cx, cy, c.w / 2, 0, Math.PI * 2);
-        ctx.fill();
-        // Inner hole (darker gold)
-        ctx.fillStyle = '#FFA000';
-        ctx.beginPath();
-        ctx.arc(cx, cy, c.w / 4, 0, Math.PI * 2);
-        ctx.fill();
-        // Sparkle (small white dot that appears/disappears)
-        if (Math.sin(elapsed * 6 + i) > 0.3) {
-          ctx.fillStyle = '#FFFFFF';
-          ctx.beginPath();
-          ctx.arc(cx + 3, cy - 3, 1.5, 0, Math.PI * 2);
-          ctx.fill();
+      // Use sprite images for collectibles
+      const spriteName = c.type === 'bouquet' ? 'flower' : (c.type === 'ring' ? 'ring' : null);
+      let spriteImg = null;
+      let spriteLoaded = false;
+
+      if (spriteName === 'flower') {
+        if (typeof GameplayScreen._flowerSprite === 'undefined') {
+          GameplayScreen._flowerSprite = new Image();
+          GameplayScreen._flowerSpriteLoaded = false;
+          GameplayScreen._flowerSprite.onload = function() { GameplayScreen._flowerSpriteLoaded = true; };
+          GameplayScreen._flowerSprite.src = 'assets/sprites/flower.png';
         }
+        spriteImg = GameplayScreen._flowerSprite;
+        spriteLoaded = GameplayScreen._flowerSpriteLoaded;
+      } else if (spriteName === 'ring') {
+        if (typeof GameplayScreen._ringSprite === 'undefined') {
+          GameplayScreen._ringSprite = new Image();
+          GameplayScreen._ringSpriteLoaded = false;
+          GameplayScreen._ringSprite.onload = function() { GameplayScreen._ringSpriteLoaded = true; };
+          GameplayScreen._ringSprite.src = 'assets/sprites/ring.png';
+        }
+        spriteImg = GameplayScreen._ringSprite;
+        spriteLoaded = GameplayScreen._ringSpriteLoaded;
+      }
+
+      if (spriteImg && spriteLoaded) {
+        ctx.imageSmoothingEnabled = false;
+        const drawSize = c.w * 3.0;
+        ctx.drawImage(spriteImg, cx - drawSize / 2, cy - drawSize / 2, drawSize, drawSize);
+        ctx.imageSmoothingEnabled = false;
       } else {
-        ctx.fillStyle = '#ff00ff';
+        // Fallback if sprite not loaded
+        ctx.fillStyle = c.type === 'bouquet' ? '#E91E63' : '#FFD700';
         ctx.beginPath();
         ctx.arc(cx, cy, c.w / 2, 0, Math.PI * 2);
         ctx.fill();
       }
     }
 
-    // 4. Church (finish area) — enhanced with glow, door, and window
+    // 4. Church (finish area) — rendered with the church sprite if loaded, otherwise fallback to drawn
     const finish = this.level.getFinishArea();
     const fx = finish.x - offset.x;
 
@@ -581,41 +572,61 @@ class GameplayScreen {
     ctx.fillStyle = 'rgba(255, 255, 200, 0.3)';
     ctx.fillRect(fx - 4, finish.y - 4, finish.w + 8, finish.h + 4);
 
-    // Main church body
-    ctx.fillStyle = '#8B4513';
-    ctx.fillRect(fx, finish.y, finish.w, finish.h);
+    // Try to use the church sprite
+    if (typeof GameplayScreen._churchSprite === 'undefined') {
+      GameplayScreen._churchSprite = new Image();
+      GameplayScreen._churchSpriteLoaded = false;
+      GameplayScreen._churchSprite.onload = function() { GameplayScreen._churchSpriteLoaded = true; };
+      GameplayScreen._churchSprite.src = 'assets/sprites/church.png';
+    }
 
-    // Steeple/roof triangle
-    ctx.fillStyle = '#654321';
-    ctx.beginPath();
-    ctx.moveTo(fx + finish.w / 2, finish.y - 12);
-    ctx.lineTo(fx, finish.y);
-    ctx.lineTo(fx + finish.w, finish.y);
-    ctx.closePath();
-    ctx.fill();
+    if (GameplayScreen._churchSpriteLoaded && GameplayScreen._churchSprite) {
+      ctx.imageSmoothingEnabled = false;
+      // Draw larger than the finish area for a nice church appearance
+      const drawW = finish.w * 2.0;
+      const drawH = finish.h * 2.0;
+      const drawX = fx + finish.w / 2 - drawW / 2;
+      const drawY = finish.y + finish.h - drawH;
+      ctx.drawImage(GameplayScreen._churchSprite, drawX, drawY, drawW, drawH);
+      ctx.imageSmoothingEnabled = false;
+    } else {
+      // Fallback: drawn church
+      // Main church body
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(fx, finish.y, finish.w, finish.h);
 
-    // Cross on top
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(fx + finish.w / 2 - 1, finish.y - 20, 2, 10);
-    ctx.fillRect(fx + finish.w / 2 - 4, finish.y - 17, 8, 2);
+      // Steeple/roof triangle
+      ctx.fillStyle = '#654321';
+      ctx.beginPath();
+      ctx.moveTo(fx + finish.w / 2, finish.y - 12);
+      ctx.lineTo(fx, finish.y);
+      ctx.lineTo(fx + finish.w, finish.y);
+      ctx.closePath();
+      ctx.fill();
 
-    // White door at bottom center
-    ctx.fillStyle = '#FFFFFF';
-    const doorW = 8;
-    const doorH = 12;
-    ctx.fillRect(fx + finish.w / 2 - doorW / 2, finish.y + finish.h - doorH, doorW, doorH);
+      // Cross on top
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(fx + finish.w / 2 - 1, finish.y - 20, 2, 10);
+      ctx.fillRect(fx + finish.w / 2 - 4, finish.y - 17, 8, 2);
 
-    // Small window (circle) above door
-    ctx.fillStyle = '#87CEEB';
-    ctx.beginPath();
-    ctx.arc(fx + finish.w / 2, finish.y + 8, 3, 0, Math.PI * 2);
-    ctx.fill();
-    // Window frame
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 0.5;
-    ctx.beginPath();
-    ctx.arc(fx + finish.w / 2, finish.y + 8, 3, 0, Math.PI * 2);
-    ctx.stroke();
+      // White door at bottom center
+      ctx.fillStyle = '#FFFFFF';
+      const doorW = 8;
+      const doorH = 12;
+      ctx.fillRect(fx + finish.w / 2 - doorW / 2, finish.y + finish.h - doorH, doorW, doorH);
+
+      // Small window (circle) above door
+      ctx.fillStyle = '#87CEEB';
+      ctx.beginPath();
+      ctx.arc(fx + finish.w / 2, finish.y + 8, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // Window frame
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.arc(fx + finish.w / 2, finish.y + 8, 3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
     // 5. Player
     this.player.render(ctx, offset);
